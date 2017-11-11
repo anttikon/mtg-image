@@ -1,0 +1,41 @@
+{
+  "name": "mtg-image",
+  "version": "1.0.2",
+  "description": "",
+  "main": "index.js",
+  "babel": {
+    "plugins": [
+      "transform-runtime"
+    ],
+    "presets": [
+      "babel-preset-env"
+    ]
+  },
+  "scripts": {
+    "eslint": "eslint src",
+    "build": "babel ./src -d build",
+    "start": "NODE_ENV=production node build/app",
+    "dev": "nodemon ./src/app.js --exec babel-node"
+  },
+  "engines": {
+    "node": "8.*"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "hapi": "^16.6.2",
+    "image-glue": "^0.1.5",
+    "node-fetch": "^1.7.3",
+    "p-queue": "^2.2.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "eslint": "^4.11.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "nodemon": "^1.12.1"
+  }
+}
