@@ -2,6 +2,7 @@ import fetch from 'node-fetch'
 import fs from 'fs'
 import { promisify } from 'util'
 import PQueue from 'p-queue'
+import logger from './logger'
 
 const readFileAsync = promisify(fs.readFile)
 const writeFileAsync = promisify(fs.writeFile)
@@ -37,6 +38,9 @@ function parseImageUrl(response) {
 async function getImageProperties(multiverseid) {
   const reponse = await fetch(`https://api.scryfall.com/cards/multiverse/${multiverseid}`)
   const json = await reponse.json()
+  if (json.status !== 200) {
+    throw new Error(json.details)
+  }
   const imageUrl = parseImageUrl(json)
   return { layout: json.layout, multiverseid: json.multiverse_ids, imageUrl }
 }
@@ -47,6 +51,7 @@ function getImageUrl(multiverseId) {
     if (!multiverseid) {
       throw new Error('Cannot find card with given multiverseid')
     }
+    logger.info('getImageUrl()', multiverseId, 'got:', { layout, multiverseid, imageUrl })
 
     const multiverseIdIndex = multiverseid.indexOf(parseInt(multiverseId, 10))
     if (layout === 'transform' && multiverseIdIndex === 1) {

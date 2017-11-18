@@ -2,6 +2,7 @@ import Hapi from 'hapi'
 import fs from 'fs'
 import { merge } from 'image-glue'
 import { getImage, imagePath } from './image'
+import logger from './logger'
 
 if (!fs.existsSync(imagePath)) {
   fs.mkdirSync(imagePath)
@@ -18,8 +19,9 @@ server.route({
   method: 'GET',
   path: '/api/v1/images',
   handler: async (request, reply) => {
+    const { multiverseid } = request.query
     try {
-      const { multiverseid } = request.query
+      logger.info('/api/v1/images with multiverseid', multiverseid)
       if (!multiverseid) {
         return reply('multiverseid is required parameter').code(500)
       } else if (Array.isArray(multiverseid)) {
@@ -32,7 +34,8 @@ server.route({
         .header('Content-Disposition', 'inline')
         .header('Content-type', 'image/jpeg')
     } catch (e) {
-      return reply(e || 'Error').code(500)
+      logger.error('/api/v1/images with multiverseid', multiverseid, ':', e.message)
+      return reply(e.message || 'Error').code(500)
     }
   },
 })
@@ -41,5 +44,5 @@ server.start((err) => {
   if (err) {
     throw err
   }
-  console.log('Server running at:', server.info.uri)
+  logger.info('Server running at:', server.info.uri)
 })

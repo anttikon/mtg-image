@@ -27,7 +27,9 @@
     "hapi": "^16.6.2",
     "image-glue": "^0.1.5",
     "node-fetch": "^1.7.3",
-    "p-queue": "^2.2.0"
+    "p-queue": "^2.2.0",
+    "winston": "^2.4.0",
+    "winston-papertrail": "^1.0.5"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
