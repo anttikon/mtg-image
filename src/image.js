@@ -38,7 +38,7 @@ function parseImageUrl(response) {
 async function getImageProperties(multiverseid) {
   const reponse = await fetch(`https://api.scryfall.com/cards/multiverse/${multiverseid}`)
   const json = await reponse.json()
-  if (json.status !== 200) {
+  if (reponse.status !== 200) {
     throw new Error(json.details)
   }
   const imageUrl = parseImageUrl(json)
