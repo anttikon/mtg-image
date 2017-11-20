@@ -64,6 +64,7 @@ function getImageUrl(multiverseId) {
 
 export const getImage = async (multiverseId) => {
   if (await existsAsync(`${imagePath}/${multiverseId}.jpg`)) {
+    logger.info('Yey, cache hit!', multiverseId)
     return readFileAsync(`${imagePath}/${multiverseId}.jpg`)
   }
   const imageUrl = await getImageUrl(multiverseId)
