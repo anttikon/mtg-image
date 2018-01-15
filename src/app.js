@@ -15,6 +15,16 @@ server.connection({
   routes: { cors: true },
 })
 
+async function mergeImages(images) {
+  if (images.length === 2) {
+    return merge(images, { output: { quality: 50 } })
+  } else if (images.length === 3) {
+    const firstMerge = await merge([images[0], images[1]], { output: { quality: 100 } })
+    return merge([firstMerge, images[2]], { output: { quality: 50 } })
+  }
+  throw new Error('Cannot merge more than 3 images')
+}
+
 server.route({
   method: 'GET',
   path: '/api/v1/images',
@@ -26,7 +36,7 @@ server.route({
         return reply('multiverseid is required parameter').code(500)
       } else if (Array.isArray(multiverseid)) {
         const images = await Promise.all(multiverseid.map(id => getImage(id)))
-        return reply(await merge(images))
+        return reply(await mergeImages(images))
           .header('Content-Disposition', 'inline')
           .header('Content-type', 'image/jpeg')
       }
