@@ -28,7 +28,7 @@ async function downloadImage(multiverseid, url) {
 }
 
 function parseImageUrl(response) {
-  if (response.card_faces && response.card_faces.length > 0) {
+  if (!response.image_uris && response.card_faces && response.card_faces.length > 0) {
     return parseImageUrl(response.card_faces[0])
   }
   const { normal, small } = response.image_uris
