@@ -1,15 +1,14 @@
-FROM node:8.7
+FROM node:10.15.0
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY package.json /usr/src/app/
-RUN yarn
+RUN npm install
 
 COPY ./src /usr/src/app/src
-RUN yarn build
-RUN yarn --production
+RUN npm run build
 
 EXPOSE 6565
 
-CMD ["yarn", "start"]
+CMD ["npm", "run", "start"]
