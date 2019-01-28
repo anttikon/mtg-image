@@ -55,7 +55,7 @@ function getImageUrl(multiverseId) {
 
     const multiverseIdIndex = multiverseid.indexOf(parseInt(multiverseId, 10))
     if (layout === 'transform' && multiverseIdIndex === 1) {
-      return imageUrl.replace('https://img.scryfall.com/cards/normal/front/', 'https://img.scryfall.com/cards/normal/back/')
+      return imageUrl.replace('https://img.scryfall.com/cards/normal/front/', 'https://img.scryfall.com/cards/normal/back/').replace('a.jpg', 'b.jpg')
     }
     await delay(timeout)
     return imageUrl
