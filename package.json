@@ -3,41 +3,27 @@
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
-  "babel": {
-    "plugins": [
-      "transform-runtime"
-    ],
-    "presets": [
-      "babel-preset-env"
-    ]
-  },
   "scripts": {
-    "eslint": "eslint src",
-    "build": "babel ./src -d build",
+    "build": "NODE_ENV=production babel ./src -d build",
     "start": "NODE_ENV=production node build/app",
     "dev": "nodemon ./src/app.js --exec babel-node"
-  },
-  "engines": {
-    "node": "8.*"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel-runtime": "^6.26.0",
-    "hapi": "^16.7.0",
-    "image-glue": "^0.1.17",
-    "node-fetch": "^2.3.0",
-    "p-queue": "^3.0.0",
-    "winston": "^2.4.0",
-    "winston-papertrail": "^1.0.5"
+    "@babel/runtime": "^7.4.3",
+    "aws-sdk": "^2.446.0",
+    "hapi": "^18.1.0",
+    "image-glue": "^0.1.18",
+    "node-fetch": "^2.4.1",
+    "p-queue": "^5.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.6.0",
-    "eslint": "^4.11.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.8.0",
-    "nodemon": "^1.18.9"
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/node": "^7.2.2",
+    "@babel/plugin-transform-runtime": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "nodemon": "^1.18.11"
   }
 }

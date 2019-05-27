@@ -1,19 +1,14 @@
 import Hapi from 'hapi'
-import fs from 'fs'
 import { merge } from 'image-glue'
-import { getImage, imagePath } from './image'
-import logger from './logger'
+import { getImage } from './image'
 
-if (!fs.existsSync(imagePath)) {
-  fs.mkdirSync(imagePath)
-}
-
-const server = new Hapi.Server()
-server.connection({
-  host: '0.0.0.0',
+const server = Hapi.server({
   port: 6565,
+  host: '0.0.0.0',
   routes: { cors: true },
 })
+
+server.start().then(() => console.log('Running!', `${server.info.uri}/api/v1/images?multiverseid=123`))
 
 async function mergeImages(images) {
   if (images.length === 2) {
@@ -28,31 +23,22 @@ async function mergeImages(images) {
 server.route({
   method: 'GET',
   path: '/api/v1/images',
-  handler: async (request, reply) => {
+  handler: async (request, h) => {
     const { multiverseid } = request.query
     try {
-      logger.info('/api/v1/images with multiverseid', multiverseid)
       if (!multiverseid) {
-        return reply('multiverseid is required parameter').code(500)
+        return {statusCode: 500}
       } else if (Array.isArray(multiverseid)) {
         const images = await Promise.all(multiverseid.map(id => getImage(id)))
-        return reply(await mergeImages(images))
+        return h.response(await mergeImages(images))
           .header('Content-Disposition', 'inline')
           .header('Content-type', 'image/jpeg')
       }
-      return reply(await getImage(multiverseid))
+      return h.response(await getImage(multiverseid))
         .header('Content-Disposition', 'inline')
         .header('Content-type', 'image/jpeg')
     } catch (e) {
-      logger.error('/api/v1/images with multiverseid', multiverseid, ':', e.message)
-      return reply(e.message || 'Error').code(500)
+      return {statusCode: 500}
     }
   },
-})
-
-server.start((err) => {
-  if (err) {
-    throw err
-  }
-  logger.info('Server running at:', server.info.uri)
 })

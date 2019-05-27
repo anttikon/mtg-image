@@ -1,73 +1,62 @@
-import fetch from 'node-fetch'
 import fs from 'fs'
-import { promisify } from 'util'
-import PQueue from 'p-queue'
-import logger from './logger'
+import S3 from 'aws-sdk/clients/s3'
+import { getImageUrl, downloadImage } from './scryfall'
 
-const readFileAsync = promisify(fs.readFile)
-const writeFileAsync = promisify(fs.writeFile)
-const existsAsync = promisify(fs.exists)
+const s3 = new S3({
+  apiVersion: '2006-03-01',
+  params: { Bucket: 'mtg-image' }
+})
 
-const queue = new PQueue({ concurrency: 1 })
+const localImagePath = `${__dirname}/../images`
+const directoryExists = (path) => fs.promises.stat(path)
+  .then(() => true)
+  .catch(() => false)
 
-export const imagePath = process.env.NODE_ENV === 'production' ? '/data/images' : `${__dirname}/../images`
-
-function delay(time) {
-  return new Promise((fulfill => setTimeout(fulfill, time)))
-}
-
-const timeout = 50
-
-async function downloadImage(multiverseid, url) {
-  return queue.add(async () => {
-    const response = await fetch(url)
-    const buffer = await response.buffer()
-    await writeFileAsync(`${imagePath}/${multiverseid}.jpg`, buffer)
-    await delay(timeout)
-  })
-}
-
-function parseImageUrl(response) {
-  if (!response.image_uris && response.card_faces && response.card_faces.length > 0) {
-    return parseImageUrl(response.card_faces[0])
+async function saveLocalImage(buffer, multiverseid) {
+  const localDirectoryExists = await directoryExists(localImagePath)
+  if (!localDirectoryExists) {
+    await fs.promises.mkdir(localImagePath)
   }
-  const { normal, small } = response.image_uris
-  return normal || small
+  return fs.promises.writeFile(`${localImagePath}/${multiverseid}.jpg`, buffer)
 }
 
-async function getImageProperties(multiverseid) {
-  const reponse = await fetch(`https://api.scryfall.com/cards/multiverse/${multiverseid}`)
-  const json = await reponse.json()
-  if (reponse.status !== 200) {
-    throw new Error(json.details)
+async function saveS3Image(buffer, multiverseid) {
+  const s3Args = {
+    ACL: 'private',
+    Bucket: 'mtg-image',
+    Key: `${multiverseid}.jpg`,
+    Body: buffer,
+    ContentType: 'image/jpeg'
   }
-  const imageUrl = parseImageUrl(json)
-  return { layout: json.layout, multiverseid: json.multiverse_ids, imageUrl }
+  return s3.putObject(s3Args).promise()
 }
 
-function getImageUrl(multiverseId) {
-  return queue.add(async () => {
-    const { layout, multiverseid, imageUrl } = await getImageProperties(multiverseId)
-    if (!multiverseid) {
-      throw new Error('Cannot find card with given multiverseid')
-    }
-    logger.info('getImageUrl()', multiverseId, 'got:', { layout, multiverseid, imageUrl })
+async function getLocalImage(multiverseid) {
+  return fs.promises.readFile(`${localImagePath}/${multiverseid}.jpg`)
+    .catch(() => null)
+}
 
-    const multiverseIdIndex = multiverseid.indexOf(parseInt(multiverseId, 10))
-    if (layout === 'transform' && multiverseIdIndex === 1) {
-      return imageUrl.replace('https://img.scryfall.com/cards/normal/front/', 'https://img.scryfall.com/cards/normal/back/').replace('a.jpg', 'b.jpg')
-    }
-    await delay(timeout)
-    return imageUrl
-  })
+async function getS3Image(multiverseid) {
+  const s3Args = {
+    Bucket: 'mtg-image',
+    Key: `${multiverseid}.jpg`,
+  }
+  return s3.getObject(s3Args)
+    .promise()
+    .then(response => response.Body)
+    .catch(() => null)
 }
 
 export const getImage = async (multiverseId) => {
-  if (await existsAsync(`${imagePath}/${multiverseId}.jpg`)) {
-    logger.info('Yey, cache hit!', multiverseId)
-    return readFileAsync(`${imagePath}/${multiverseId}.jpg`)
+  const existingImage = process.env.NODE_ENV === 'production' ? await getS3Image(multiverseId) : await getLocalImage((multiverseId))
+  if (existingImage) {
+    return existingImage
   }
+
   const imageUrl = await getImageUrl(multiverseId)
-  await downloadImage(multiverseId, imageUrl)
-  return readFileAsync(`${imagePath}/${multiverseId}.jpg`)
+  const buffer = await downloadImage(multiverseId, imageUrl)
+
+  process.env.NODE_ENV === 'production' ? saveS3Image(buffer, multiverseId) : saveLocalImage(buffer, multiverseId)
+
+  return buffer
 }
