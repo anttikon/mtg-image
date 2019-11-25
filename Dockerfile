@@ -1,4 +1,4 @@
-FROM node:10.15.0-slim
+FROM node:13.1.0-alpine3.10
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -6,13 +6,9 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app/
 COPY package-lock.json /usr/src/app/
 
-RUN npm install
+RUN npm install --production
 
 COPY ./src /usr/src/app/src
-COPY .babelrc /usr/src/app/
-
-RUN npm run build
-RUN npm prune --production
 
 EXPOSE 6565
 

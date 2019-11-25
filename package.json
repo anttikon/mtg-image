@@ -4,26 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "NODE_ENV=production babel ./src -d build",
-    "start": "NODE_ENV=production node build/app",
-    "dev": "nodemon ./src/app.js --exec babel-node"
+    "start": "NODE_ENV=production node ./src/app",
+    "dev": "nodemon ./src/app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/runtime": "^7.4.3",
-    "aws-sdk": "^2.446.0",
-    "hapi": "^18.1.0",
-    "image-glue": "^0.1.18",
-    "node-fetch": "^2.4.1",
-    "p-queue": "^5.0.0"
+    "express": "^4.17.1",
+    "image-glue": "^0.1.20",
+    "node-fetch": "^2.6.0",
+    "p-queue": "^6.2.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.3",
-    "@babel/core": "^7.4.3",
-    "@babel/node": "^7.2.2",
-    "@babel/plugin-transform-runtime": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
-    "nodemon": "^1.18.11"
+    "nodemon": "^2.0.1",
+    "prettier": "^1.19.1"
   }
 }

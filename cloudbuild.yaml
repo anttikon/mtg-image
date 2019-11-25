@@ -1,0 +1,9 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/mtg-image', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'eu.gcr.io/$PROJECT_ID/mtg-image']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['beta', 'run', 'deploy', 'mtg-image', '--image', 'eu.gcr.io/$PROJECT_ID/mtg-image', '--region', 'europe-west1', '--platform', 'managed', '--quiet']
+images:
+  - eu.gcr.io/$PROJECT_ID/mtg-image
