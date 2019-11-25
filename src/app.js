@@ -1,6 +1,6 @@
-const express = require('express')
-const { merge } = require('image-glue')
-const { getImageUrl, downloadImage } = require('./scryfall')
+import express from 'express'
+import imageGlue from 'image-glue'
+import { getImageUrl, downloadImage } from './scryfall.js'
 
 const app = express()
 
@@ -9,7 +9,7 @@ const port = process.env.PORT || 6505
 app.get('/api/v1/images', async (req, res) => {
   const { multiverseid } = req.query
   if (!multiverseid) {
-    return res.status(400)
+    return res.status(400).send('Bad Request')
   }
   try {
     const buffer = await getImageBuffer(multiverseid)
@@ -18,20 +18,25 @@ app.get('/api/v1/images', async (req, res) => {
     return res.send(buffer)
   } catch (e) {
     console.error(e)
-    return res.status(500)
+    return res.status(500).send('Error')
   }
 })
 
-async function mergeImages(images) {
+const mergeOpts = { output: { quality: 50 } }
+
+const mergeImages = async images => {
   if (images.length === 2) {
-    return merge(images, { output: { quality: 50 } })
+    return imageGlue.merge(images, mergeOpts)
   } else if (images.length === 3) {
-    const firstMerge = await merge([images[0], images[1]], {
-      output: { quality: 100 },
-    })
-    return merge([firstMerge, images[2]], { output: { quality: 50 } })
+    const firstMerge = await imageGlue.merge([images[0], images[1]], mergeOpts)
+    return imageGlue.merge([firstMerge, images[2]], mergeOpts)
   }
   throw new Error('Cannot merge more than 3 images')
+}
+
+const getImage = async multiverseId => {
+  const imageUrl = await getImageUrl(multiverseId)
+  return downloadImage(multiverseId, imageUrl)
 }
 
 const getImageBuffer = async multiverseid => {
@@ -40,11 +45,6 @@ const getImageBuffer = async multiverseid => {
     return mergeImages(images)
   }
   return getImage(multiverseid)
-}
-
-const getImage = async multiverseId => {
-  const imageUrl = await getImageUrl(multiverseId)
-  return downloadImage(multiverseId, imageUrl)
 }
 
 app.listen(port, () => console.log(`mtg-image listening on port ${port}!`))

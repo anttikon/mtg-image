@@ -1,39 +1,31 @@
-const { default: PQueue } = require('p-queue')
-const fetch = require('node-fetch')
+import { default as PQueue } from 'p-queue'
+import fetch from 'node-fetch'
 
-const queue = new PQueue({ concurrency: 1 })
+const queue = new PQueue.default({ concurrency: 1 })
 const delay = time => new Promise(resolve => setTimeout(resolve, time))
 const timeout = 75
 
-function parseImageUrl(response) {
-  if (
-    !response.image_uris &&
-    response.card_faces &&
-    response.card_faces.length > 0
-  ) {
-    return parseImageUrl(response.card_faces[0])
-  }
-  const { normal, small } = response.image_uris
-  return normal || small
-}
+const parseImageUrl = response =>
+  !response.image_uris && response.card_faces && response.card_faces.length > 0
+    ? parseImageUrl(response.card_faces[0])
+    : response.image_uris.normal || response.image_uris.small
 
-const downloadImage = async (multiverseid, url) => (await fetch(url)).buffer()
+export const downloadImage = (multiverseid, url) =>
+  fetch(url).then(response => response.buffer())
 
-module.exports.downloadImage = downloadImage
-
-async function getImageProperties(multiverseid) {
-  const reponse = await fetch(
+const getImageProperties = async multiverseid => {
+  const response = await fetch(
     `https://api.scryfall.com/cards/multiverse/${multiverseid}`,
   )
-  const json = await reponse.json()
-  if (reponse.status !== 200) {
+  const json = await response.json()
+  if (response.status !== 200) {
     throw new Error(json.details)
   }
   const imageUrl = parseImageUrl(json)
   return { layout: json.layout, multiverseid: json.multiverse_ids, imageUrl }
 }
 
-function getImageUrl(multiverseId) {
+export const getImageUrl = multiverseId => {
   const response = queue.add(async () => {
     const { layout, multiverseid, imageUrl } = await getImageProperties(
       multiverseId,
@@ -56,5 +48,3 @@ function getImageUrl(multiverseId) {
   queue.add(async () => await delay(timeout))
   return response
 }
-
-module.exports.getImageUrl = getImageUrl
