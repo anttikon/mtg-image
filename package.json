@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "image-glue": "^0.1.20",
     "node-fetch": "^2.6.0",
     "p-queue": "^6.2.1"
